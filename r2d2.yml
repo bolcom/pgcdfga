@@ -1,0 +1,66 @@
+%YAML 1.1
+---
+kind: ApplicationProject
+name: pgcdfga
+spec:
+  opex: teamsec
+  trustees:
+  - teampanda
+  - teamapollo
+  environment: nonpro
+  customer_facing: false
+  handles_pii_data: false
+  with_gke: true
+  with_cloudbuilder: true
+  status: operational
+  enabled_apis:
+    - admin.googleapis.com
+---
+kind: PostgreSQLInstance
+name: mydbserverspec:
+  version: 10
+  network:
+    - 192.168.2.0/24
+  region: europe-west1
+  cpu: 2
+  memory: 6
+  disk_size: 20
+  backup: true
+  # maintenance_window: { day: 6, hour: 2, update_track: 'stable’ } ?
+  # client-ca: |
+  #   -----BEGIN CERTIFICATE-----
+  #   MIIGRzCCBS+gAwIBAgIQ…
+  server-cert:
+    cert: 1234abcd
+    key: 5678efgh
+  databases:
+    mydb1:
+      owner: custom1
+      extensions:
+        pg_stat_statement:
+          database: mydb1
+          version: 10.1.3
+  users:
+    srt-retail:
+      auth: ldap-group
+    smannem:
+      auth: ldap-user
+      expiry: 2018-06-07
+      network:
+        - 192.168.2.0/24
+    custom1:
+       auth: client-cert
+       memberof:
+         - opex
+         - readonly
+  roles:
+    readonly:
+      options:
+        - LOGIN
+    opex:
+      options:
+        - SUPERUSER
+        - CREATEDB
+        - CREATEUSER
+      memberof:
+        - readonly

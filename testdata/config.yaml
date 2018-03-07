@@ -1,0 +1,62 @@
+---
+general:
+  loglevel: debug
+
+strict:
+  users: True
+  databases: True
+
+ldap:
+  basedn: 'OU=pro,DC=example,DC=com'
+  passwordfile: /pgcdfga_config/ldappassword
+  servers:
+    - ldap1.example.com
+  userfile: /pgcdfga_config/ldapuser
+  conn_retries: 1
+
+postgresql:
+  dsn:
+    host: 172.17.0.2
+    user: pgcdfga
+    connect_timeout: 10
+    sslcert: /pgcdfga_config/client_pgcdfga_chain.pem
+    sslkey: /pgcdfga_config/client_pgcdfga.key
+    sslrootcert: /pgcdfga_config/serverca.pem
+    sslmode: verify-ca
+
+databases:
+  sebas:
+    state: present
+    extensions:
+      pg_stat_statements:
+        schema: public
+        version: 1.5
+        state: present
+
+users:
+  bol-apollo:
+    auth: ldap-group
+    ldapbasedn: 'OU=pro,DC=example,DC=com'
+    ldapfilter: '(&(cn=team1)(!(cn=*-gon))(!(cn=*-goun)))'
+    memberof:
+    - opex
+  smannem:
+    auth: ldap-user
+    expiry: 2018-02-24
+    memberof:
+    - dba
+  pghoard:
+    auth: password
+    password: md5ed9441016fee39e0b1f8047bc02685a0
+    memberof:
+    - backup
+roles:
+  dba:
+    options:
+    - SUPERUSER
+    member:
+    - opex
+    strict: true
+  backup:
+    options:
+    - SUPERUSER
