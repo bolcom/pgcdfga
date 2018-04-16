@@ -18,34 +18,44 @@
 # Read docker info from the actual Dockerfile
 IMAGE := $(shell awk '/IMAGE:/ {print $$3}' Dockerfile)
 VERSION := $(shell awk '/VERSION:/ {print $$3}' Dockerfile)
-PROJECT := $(shell awk '/PROJECT:/ {print $$3}' Dockerfile)
+SBXPROJECT := $(shell awk '/SBXPROJECT:/ {print $$3}' Dockerfile)
+STGPROJECT := $(shell awk '/STGPROJECT:/ {print $$3}' Dockerfile)
 
 all: build tag
 
 clean:
-	rm -r pgcdfga.egg-info/
+	rm -rf pgcdfga.egg-info/
+	docker rmi ${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not clean ${SBXPROJECT}/${IMAGE}:${VERSION}
+	docker rmi eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not clean eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
+	docker rmi eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not clean eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
+	docker rmi eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not clean eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
+	docker rmi eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not clean eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
 
 run:
-	docker run --rm -t ${PROJECT}/${IMAGE}:${VERSION}
+	docker run --rm -t ${SBXPROJECT}/${IMAGE}:${VERSION}
 
 build: Dockerfile
-	docker build -t ${PROJECT}/${IMAGE}:${VERSION} -f Dockerfile .
+	docker build -t ${SBXPROJECT}/${IMAGE}:${VERSION} -f Dockerfile .
 
 tag: tag-version tag-latest
 
 tag-version:
-	docker tag ${PROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${PROJECT}/${IMAGE}:${VERSION}
+	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
+	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
 
 tag-latest:
-	docker tag ${PROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${PROJECT}/${IMAGE}:latest
+	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
+	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
 
 push: push-version push-latest
 
 push-version:
-	gcloud docker -- push eu.gcr.io/${PROJECT}/${IMAGE}:${VERSION}
+	gcloud docker -- push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
+	gcloud docker -- push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
 
 push-latest:
-	gcloud docker -- push eu.gcr.io/${PROJECT}/${IMAGE}:latest
+	gcloud docker -- push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
+	gcloud docker -- push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
 
 test:
 	flake8 .

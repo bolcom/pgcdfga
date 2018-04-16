@@ -1,6 +1,7 @@
 ---
 general:
   loglevel: debug
+  run_delay: -1
 
 strict:
   users: True
