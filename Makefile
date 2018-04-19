@@ -21,7 +21,7 @@ VERSION := $(shell awk '/VERSION:/ {print $$3}' Dockerfile)
 SBXPROJECT := $(shell awk '/SBXPROJECT:/ {print $$3}' Dockerfile)
 STGPROJECT := $(shell awk '/STGPROJECT:/ {print $$3}' Dockerfile)
 
-all: build tag
+all: clean build tag push
 
 clean:
 	rm -rf pgcdfga.egg-info/
