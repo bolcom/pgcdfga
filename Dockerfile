@@ -16,7 +16,6 @@
 # along with pgcdfga.  If not, see <http://www.gnu.org/licenses/>.
 
 # IMAGE:          crunchy-pgcdfga
-# VERSION:        0.9.5
 # STGPROJECT:     bolcom-stg-baseimages-702
 # SBXPROJECT:     bolcom-sbx-baseimages-fd0 
 # AUTHOR:         BOL-DBA <bol-dba@bol.com>

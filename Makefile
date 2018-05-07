@@ -17,11 +17,12 @@
 
 # Read docker info from the actual Dockerfile
 IMAGE := $(shell awk '/IMAGE:/ {print $$3}' Dockerfile)
-VERSION := $(shell awk '/VERSION:/ {print $$3}' Dockerfile)
+VERSION := $(shell cat pgcdfga/__init__.py | grep "^__version__" | awk '{print $$3}' | tr -d '"')
 SBXPROJECT := $(shell awk '/SBXPROJECT:/ {print $$3}' Dockerfile)
 STGPROJECT := $(shell awk '/STGPROJECT:/ {print $$3}' Dockerfile)
 
 all: clean build tag push
+all-latest: clean build tag-latest push-latest
 
 clean:
 	rm -rf pgcdfga.egg-info/
@@ -50,12 +51,12 @@ tag-latest:
 push: push-version push-latest
 
 push-version:
-	gcloud docker -- push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
-	gcloud docker -- push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
+	docker push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
+	docker push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
 
 push-latest:
-	gcloud docker -- push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
-	gcloud docker -- push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
+	docker push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
+	docker push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
 
 test:
 	flake8 .

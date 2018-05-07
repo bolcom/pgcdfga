@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with pgcdfga.  If not, see <http://www.gnu.org/licenses/>.
 
+import codecs
+import os
+import re
 from setuptools import setup, find_packages
 
 install_requirements = [
@@ -24,9 +27,19 @@ install_requirements = [
     'ldap3'
 ]
 
+def find_version():
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, 'pgcdfga', '__init__.py'), 'r') as fp:
+        version_file = fp.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+        version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 setup(
     name='pgcdfga',
-    version='0.9.5',
+    version=find_version(),
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=install_requirements,
     entry_points={
