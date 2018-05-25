@@ -17,4 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with pgcdfga.  If not, see <http://www.gnu.org/licenses/>.
 
-__version__ = "0.9.6"
+'''
+This module is used to manage postgres objects like users, databases, extensions and roles.
+It can be configured with a yaml hash and it can manage users from an ldap group too.
+'''
+
+__version__ = "0.9.7"

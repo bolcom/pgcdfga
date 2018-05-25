@@ -21,8 +21,9 @@ VERSION := $(shell cat pgcdfga/__init__.py | grep "^__version__" | awk '{print $
 SBXPROJECT := $(shell awk '/SBXPROJECT:/ {print $$3}' Dockerfile)
 STGPROJECT := $(shell awk '/STGPROJECT:/ {print $$3}' Dockerfile)
 
-all: clean build tag push
-all-latest: clean build tag-latest push-latest
+all: clean test build tag push
+all-latest: clean test build tag-latest push-latest
+test: test-flake8 test-pylint test-coverage
 
 clean:
 	rm -rf pgcdfga.egg-info/
@@ -58,7 +59,12 @@ push-latest:
 	docker push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
 	docker push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
 
-test:
+test-flake8:
 	flake8 .
+
+test-pylint:
+	pylint *.py pgcdfga tests
+
+test-coverage:
 	coverage run --source pgcdfga setup.py test
 	coverage report -m
