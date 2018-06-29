@@ -205,6 +205,7 @@ class PGConnection():
         if self.run_sql('SELECT datname FROM pg_database WHERE datname = %s', [dbname]):
             query = sql.SQL("DROP DATABASE {}").format(sql.Identifier(dbname))
             self.run_sql(query)
+            logging.info("Dropped database '%s'", dbname)
             return True
         return False
 
@@ -225,6 +226,7 @@ class PGConnection():
         if not self.run_sql('SELECT datname FROM pg_database WHERE datname = %s', [dbname]):
             createquery = sql.SQL("CREATE DATABASE {}").format(database)
             self.run_sql(createquery)
+            logging.info("Created database '%s'", dbname)
             ret = True
 
         if not self.run_sql('SELECT datname FROM pg_database db inner join pg_roles rol \
@@ -232,6 +234,7 @@ class PGConnection():
                              rolname = %s', [dbname, ownername]):
             alterquery = sql.SQL("ALTER DATABASE {} OWNER TO {}").format(database, owner)
             self.run_sql(alterquery)
+            logging.info("Altered database owner on '%s' to '%s'", dbname, ownername)
             ret = True
         # opex role has full permissions on every user database
         if self.grantrole('opex', ownername):
@@ -275,6 +278,7 @@ class PGConnection():
                 self.run_sql(query=reassign_query, database=database)
             drop_query = sql.SQL("DROP ROLE {}").format(role)
             self.run_sql(drop_query)
+            logging.info("Dropped role '%s'", rolename)
             return True
         return False
 
@@ -290,6 +294,7 @@ class PGConnection():
         if not self.run_sql('SELECT rolname FROM pg_roles WHERE rolname = %s', [rolename]):
             query = sql.SQL("CREATE ROLE {}").format(role)
             self.run_sql(query)
+            logging.info("Created role '%s'", rolename)
             ret = True
         if not isinstance(options, list):
             options = []
@@ -369,6 +374,7 @@ class PGConnection():
             role = sql.Identifier(rolename)
             query = sql.SQL("GRANT {} TO {}").format(role, user)
             self.run_sql(query)
+            logging.info("Granted role '%s' to user '%s'", rolename, username)
             ret = True
         return ret
 
@@ -385,6 +391,7 @@ class PGConnection():
         role = sql.Identifier(rolename)
         query = sql.SQL("REVOKE {} FROM {}").format(role, user)
         self.run_sql(query)
+        logging.info("Revoked role '%s' from '%s'", rolename, username)
         return True
 
     def strictifyroles(self):
@@ -483,6 +490,7 @@ class PGConnection():
         if self.run_sql('SELECT datname FROM pg_database WHERE datname = %s', [database]):
             query = sql.SQL("DROP EXTENSION IF EXISTS {}").format(sql.Identifier(extension))
             self.run_sql(query, database=database)
+            logging.info("Dropped extension '%s' from '%s'", extension, database)
             return True
         return False
 
@@ -514,6 +522,7 @@ class PGConnection():
                 create_query.append(sql.SQL('VERSION {}').format(sql.Identifier(str(version))))
             self.run_sql(sql.SQL(' ').join(create_query),
                          database=dbname)
+            logging.info("Created extension '%s' on '%s'", extensionname, dbname)
             return True
         return False
 
