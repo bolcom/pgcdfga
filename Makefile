@@ -18,46 +18,38 @@
 # Read docker info from the actual Dockerfile
 IMAGE := $(shell awk '/IMAGE:/ {print $$3}' Dockerfile)
 VERSION := $(shell cat pgcdfga/__init__.py | grep "^__version__" | awk '{print $$3}' | tr -d '"')
-SBXPROJECT := $(shell awk '/SBXPROJECT:/ {print $$3}' Dockerfile)
-STGPROJECT := $(shell awk '/STGPROJECT:/ {print $$3}' Dockerfile)
+PROJECTS := eu.gcr.io/bolcom-stg-baseimages-702 eu.gcr.io/bolcom-sbx-baseimages-fd0
 
 all: clean test build tag push
 all-latest: clean test build tag-latest push-latest
 test: test-flake8 test-pylint test-coverage
 
 clean:
-	rm -rf pgcdfga.egg-info/
-	docker rmi ${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not clean ${SBXPROJECT}/${IMAGE}:${VERSION}
-	docker rmi eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not clean eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
-	docker rmi eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not clean eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
-	docker rmi eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not clean eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
-	docker rmi eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not clean eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
+	@docker rmi $(IMAGE):$(VERSION) || echo Could not clean $(IMAGE):$(VERSION)
+	@$(foreach project, $(PROJECTS), docker rmi $(project)/$(IMAGE):$(VERSION) || echo Could not clean $(project)/$(IMAGE):$(VERSION))
+	@$(foreach project, $(PROJECTS), docker rmi $(project)/$(IMAGE):latest || echo Could not clean $(project)/$(IMAGE):latest)
 
 run:
-	docker run --rm -t ${SBXPROJECT}/${IMAGE}:${VERSION}
+	docker run --rm -t ${IMAGE}:${VERSION}
 
 build: Dockerfile
-	docker build -t ${SBXPROJECT}/${IMAGE}:${VERSION} -f Dockerfile .
+	docker build -t ${IMAGE}:${VERSION} -f Dockerfile .
 
 tag: tag-version tag-latest
 
 tag-version:
-	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
-	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
+	$(foreach project, $(PROJECTS), docker tag $(IMAGE):$(VERSION) $(project)/$(IMAGE):$(VERSION))
 
 tag-latest:
-	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
-	docker tag ${SBXPROJECT}/${IMAGE}:${VERSION} eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
+	$(foreach project, $(PROJECTS), docker tag $(IMAGE):$(VERSION) $(project)/$(IMAGE):latest)
 
 push: push-version push-latest
 
 push-version:
-	docker push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:${VERSION}
-	docker push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION} || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:${VERSION}
+	@$(foreach project, $(PROJECTS), docker push $(project)/$(IMAGE):$(VERSION) || echo Could not push $(project)/$(IMAGE):$(VERSION))
 
 push-latest:
-	docker push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${STGPROJECT}/${IMAGE}:latest
-	docker push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest || echo Could not push eu.gcr.io/${SBXPROJECT}/${IMAGE}:latest
+	@$(foreach project, $(PROJECTS), docker push $(project)/$(IMAGE):latest || echo Could not push $(project)/$(IMAGE):latest)
 
 test-flake8:
 	flake8 .

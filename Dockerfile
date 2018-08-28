@@ -16,8 +16,6 @@
 # along with pgcdfga.  If not, see <http://www.gnu.org/licenses/>.
 
 # IMAGE:          crunchy-pgcdfga
-# STGPROJECT:     bolcom-stg-baseimages-702
-# SBXPROJECT:     bolcom-sbx-baseimages-fd0 
 # AUTHOR:         BOL-DBA <bol-dba@bol.com>
 # DESCRIPTION:    Enforces Postgres CrunchyData Fine Grained Authorization
 # TO_BUILD/TAG:   make
